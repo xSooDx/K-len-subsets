@@ -1,0 +1,8 @@
+klss.c:
+	serial code for genererating fixed length subsets.
+	
+klss-p.c:
+	parallel code for generating fixed length subsets.
+	
+makefile:
+	to generate s.out(serial) and p.out(parallel)
