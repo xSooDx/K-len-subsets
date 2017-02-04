@@ -1,7 +1,7 @@
 klss.c:
 	serial code for genererating fixed length subsets.
 	
-klss-p.c:
+klss_p.c:
 	parallel code for generating fixed length subsets.
 	
 makefile:
