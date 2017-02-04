@@ -1,6 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include<omp.h>
+#include<time.h>
 static int KEY=0;
 typedef struct node 
 {
@@ -90,13 +90,17 @@ int main(int argc, char* args[])
 	scanf("%d",&n);
 	scanf("%d",&k);
 	int A[n],used[n];
-	
+	clock_t start_t,end_t;
 	for(int i = 0; i<n;i++)
 	{
 		A[i]=i;
 		used[i]=0;
 	}
+	
+	start_t=clock();
 	subset(A,n,k,0,0,used);
+	end_t=clock();
 	//printList(&subsets,k);
+	printf("Clock Ticks: %ld\n",end_t-start_t);
 	
 }

@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<time.h>
 #include<omp.h>
 
 typedef struct node 
@@ -112,6 +113,8 @@ int main(int argc, char* args[])
 	int A[n],used[n];
 
 	int N_T=omp_get_max_threads();
+	clock_t start_t,end_t;
+	
 	LinkList lists[N_T];
 	for(int i=0;i<N_T;i++)
 	{
@@ -123,6 +126,7 @@ int main(int argc, char* args[])
 		A[i]=i;
 		used[i]=0;
 	}
+	start_t=clock();
 	#pragma omp parallel
 	{
 		#pragma omp single nowait
@@ -132,6 +136,9 @@ int main(int argc, char* args[])
 	}
 	#pragma omp taskwait
 	joinLists(lists,N_T);
+	end_t=clock();
 	//printList(&subsets,k);
+	
+	printf("Clock Ticks: %ld\n",end_t-start_t);
 	
 }
