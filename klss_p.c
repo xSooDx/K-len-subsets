@@ -1,11 +1,10 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<omp.h>
-static int KEY=0;
+
 typedef struct node 
 {
 	int *data;
-	int id;
 	struct node *next;
 } Node;
 typedef struct LinkList
@@ -14,16 +13,18 @@ typedef struct LinkList
 	Node *last;
 } LinkList;
 
-
+typedef unsigned long long boolstr;
 
 LinkList subsets={NULL,NULL};
 
 void printList(LinkList *list,int k)
 {
 	Node *tmp = list->first;
+	int i =0;
 	while(tmp)
 	{
-		printf("%d: ",tmp->id);
+		i++;
+		printf("%d:",i);
 		for(int i = 0; i < k;i++)
 		{
 			printf("%d ",tmp->data[i]);
@@ -40,8 +41,7 @@ void LL_add(LinkList *list,int *d)
 	Node *n = malloc(sizeof(Node));
 	n->data=d;
 	n->next=NULL;
-	n->id=KEY;
-	KEY++;
+	
 	if(list->first==NULL)
 	{
 		list->first=n;
@@ -54,7 +54,7 @@ void LL_add(LinkList *list,int *d)
 	}
 }
 
-void subset(int A[],int s,int k,int start,int current, long used)
+void subset(int A[],int s,int k,int start,int current,boolstr used,LinkList lists[])
 {
 	if(current == k )
 	{
@@ -70,10 +70,8 @@ void subset(int A[],int s,int k,int start,int current, long used)
 			}
 			
 		}
-		#pragma omp critical
-		{
-		LL_add(&subsets,tmp);
-		}
+		
+		LL_add(&lists[omp_get_thread_num()],tmp);
 		return;
 	}
 	
@@ -82,35 +80,58 @@ void subset(int A[],int s,int k,int start,int current, long used)
 		return;
 	}
 	
-	#pragma omp single
-	{
 		#pragma omp task
 		{
-			subset(A,s,k,start+1,current+1,used|(1<<start));
+			subset(A,s,k,start+1,current+1,used|(1<<start),lists);
 		}
 		#pragma omp task
 		{
-			subset(A,s,k,start+1,current,used);
+			subset(A,s,k,start+1,current,used,lists);
+		}
+}
+void joinLists(LinkList lists[],int N_T)
+{
+	subsets.first=lists[0].first;
+	subsets.last=lists[0].last;
+	LinkList T;
+	for(int i = 0; i<N_T;i++)
+	{
+		T=lists[i];
+		if(T.first)
+		{
+			subsets.last->next=T.first;
+			subsets.last=T.last;
 		}
 	}
-	
 }
-
 int main(int argc, char* args[])
 {
-
-	
 	int n,k;
 	scanf("%d",&n);
 	scanf("%d",&k);
 	int A[n],used[n];
 
+	int N_T=omp_get_max_threads();
+	LinkList lists[N_T];
+	for(int i=0;i<N_T;i++)
+	{
+		lists[i].first=NULL;
+		lists[i].last=NULL;
+	}
 	for(int i = 0; i<n;i++)
 	{
 		A[i]=i;
 		used[i]=0;
 	}
-	subset(A,n,k,0,0,0);
+	#pragma omp parallel
+	{
+		#pragma omp single nowait
+		{
+			subset(A,n,k,0,0,0,lists);
+		}
+	}
+	#pragma omp taskwait
+	joinLists(lists,N_T);
 	//printList(&subsets,k);
 	
 }
